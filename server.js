@@ -17,48 +17,51 @@ function gcd(a, b) {
 }
 
 function lcm(a, b) {
+    if (a === 0n || b === 0n) {
+        return 0n;
+    }
     return a * (b / gcd(a, b));
 }
 
 function isNaturalNumber(value) {
-    const num = Number(value);
-    return Number.isInteger(num) && num > 0;
+    if (typeof value !== 'string' || value.trim() === '') {
+        return false;
+    }
+    try {
+        const num = BigInt(value);
+        return num > 0n;
+    } catch (e) {
+        return false;
+    }
 }
 
 const server = http.createServer((req, res) => {
-    console.log(`[${new Date().toISOString()}] Новый запрос: ${req.method} ${req.url}`);
-
     const parsedUrl = url.parse(req.url, true);
     const { pathname, query } = parsedUrl;
     const requiredPathEnd = `/${sanitizeEmail(MY_EMAIL)}`;
 
-    console.log(` - Разобранный путь: ${pathname}`);
-    console.log(` - Параметры запроса (query): x=${query.x}, y=${query.y}`);
-    console.log(` - Ожидаемое окончание пути: ${requiredPathEnd}`);
-
     if (req.method === 'GET' && pathname.endsWith(requiredPathEnd)) {
-        console.log("   -> Путь СОВПАЛ. Проверяем параметры.");
         const { x, y } = query;
 
         if (!isNaturalNumber(x) || !isNaturalNumber(y)) {
-            console.log(`     -> Параметры НЕВЕРНЫЕ (x=${x}, y=${y}). Отдаю 'NaN'.`);
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end('NaN');
             return;
         }
 
-        const result = lcm(Number(x), Number(y));
-        console.log(`     -> Параметры ВЕРНЫЕ. Результат НОК: ${result}. Отдаю результат.`);
+        const numX = BigInt(x);
+        const numY = BigInt(y);
+        
+        const result = lcm(numX, numY);
 
         res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end(String(result));
+        res.end(result.toString());
     } else {
-        console.log("   -> Путь НЕ СОВПАЛ. Отдаю 404 'Not Found'.");
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
     }
 });
 
 server.listen(PORT, () => {
-    console.log(`[INFO] Сервер запущен на порту ${PORT}.`);
+    console.log(`Server is running on port ${PORT}`);
 });
