@@ -17,10 +17,7 @@ function gcd(a, b) {
 }
 
 function lcm(a, b) {
-    if (a === 0 || b === 0) {
-        return 0;
-    }
-    return Math.abs(a * b) / gcd(a, b);
+    return a * (b / gcd(a, b));
 }
 
 function isNaturalNumber(value) {
